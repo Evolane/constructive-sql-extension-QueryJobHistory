@@ -1,19 +1,20 @@
-name: custom:constructive-sql-extension-query-job-hist
-version: "0.0.1"
+name: custom:constructive-sql-ext-job-history
+version: 0.0.14
 minDynatraceVersion: "1.287.0"
 author:
   name: Evolane - Ynias
-
 metrics:
   - key: extension.sql.jobhistorystatus
     metadata:
       displayName: Job History Status
       unit: Count
-      
-
+  - key: extension.sql.jobrunduration
+    metadata:
+      displayName: Job Duration in Minutes
+      unit: Minute
 sqlServer:
-  - group: JobHistor
-    featureSet: "Overwerkte Bestanden"
+  - group: JobHistory
+    featureSet: "Job History Metrics"
     interval:
       minutes: 1
     ingest: metrics
@@ -27,12 +28,7 @@ sqlServer:
               SELECT TOP 1
                   ExecutedAt = msdb.dbo.agent_datetime(T.run_date, T.run_time),
                   RunDurationMinutes = ((run_duration/100003600 + (run_duration/100)%10060 + run_duration%100 + 31 ) / 60),
-            CASE
-              WHEN T.run_status = 0 THEN 'Failed'
-              WHEN T.run_status = 1 THEN 'Succeeded'
-              WHEN T.run_status = 2 THEN 'Retry'
-              WHEN T.run_status = 3 THEN 'Cancelled'
-            END AS RunStatus
+                  T.run_status as RunStatus
               FROM
                   msdb.dbo.sysjobhistory AS T
               WHERE
@@ -40,11 +36,13 @@ sqlServer:
               ORDER BY
                   T.instance_id DESC) AS H
       ORDER BY
-      J.name
+          J.name
     dimensions: 
-      - key: jobname
-        value: col:JobName
+     - key: jobname
+       value: col:JobName
     metrics:
       - key: extension.sql.jobhistorystatus
-        value: col:T.run_status
+        value: col:RunStatus
+      - key: extension.sql.jobrunduration
+        value: col:RunDurationMinutes
         
