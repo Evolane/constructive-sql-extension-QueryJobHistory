@@ -1,5 +1,5 @@
 name: custom:constructive-sql-ext-job-history
-version: 0.0.14
+version: 0.0.16
 minDynatraceVersion: "1.287.0"
 author:
   name: Evolane - Ynias
@@ -16,7 +16,7 @@ sqlServer:
   - group: JobHistory
     featureSet: "Job History Metrics"
     interval:
-      minutes: 1
+      minutes: 1440
     ingest: metrics
     query: 
       SELECT
@@ -40,6 +40,8 @@ sqlServer:
     dimensions: 
      - key: jobname
        value: col:JobName
+     - key: jobexecutedat
+       value: col:ExecutedAt
     metrics:
       - key: extension.sql.jobhistorystatus
         value: col:RunStatus
